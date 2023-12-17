@@ -1,3 +1,4 @@
+import itertools
 import os
 import re
 from typing import NamedTuple
@@ -55,7 +56,7 @@ def import_games() -> list[Game]:
 class GameAnalyzer:
     """Imports data, instantiates Games and provides infos about them"""
 
-    def __init__(self, nbr_red: int, nbr_green: int, nbr_blue: int):
+    def __init__(self, nbr_red: int = 0, nbr_green: int = 0, nbr_blue: int = 0):
         """Check if game is possible, given the number of red, green, blue cubes"""
         self._nbrRed = nbr_red
         self._nbrGreen = nbr_green
@@ -63,14 +64,20 @@ class GameAnalyzer:
 
     def is_possible_game(self, game: Game) -> bool:
         """Checks if `game` is possible"""
-        max_red = max(x.red for x in game.sets_of_cubes)
-        max_green = max(x.green for x in game.sets_of_cubes)
-        max_blue = max(x.blue for x in game.sets_of_cubes)
+        max_set = maximum_set(game)
         return (
-            0 <= max_red <= self._nbrRed
-            and 0 <= max_green <= self._nbrGreen
-            and 0 <= max_blue <= self._nbrBlue
+            0 <= max_set.red <= self._nbrRed
+            and 0 <= max_set.green <= self._nbrGreen
+            and 0 <= max_set.blue <= self._nbrBlue
         )
+
+
+def maximum_set(game) -> SetOfCubes:
+    """Return set with individual maximal cubes"""
+    max_red = max(x.red for x in game.sets_of_cubes)
+    max_green = max(x.green for x in game.sets_of_cubes)
+    max_blue = max(x.blue for x in game.sets_of_cubes)
+    return SetOfCubes(max_red, max_green, max_blue)
 
 
 def get_sum_of_ids_of_possible_games(
@@ -82,8 +89,15 @@ def get_sum_of_ids_of_possible_games(
     return id_sum
 
 
+def sum_of_power_of_minimum_sets():
+    max_sets = [maximum_set(game) for game in import_games()]
+    return sum(x.red * x.green * x.blue for x in max_sets)
+
+
 if __name__ == "__main__":
     sum_ids = get_sum_of_ids_of_possible_games(
         red=12, green=13, blue=14, games=import_games()
     )
+    sum_powers = sum_of_power_of_minimum_sets()
     print(f"Sum of ids of all possible games: {sum_ids}")
+    print(f"Sum of all powers of minimum_sets: {sum_powers}")
